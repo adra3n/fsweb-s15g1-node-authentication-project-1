@@ -1,5 +1,6 @@
 const UsersModel = require('../users/users-model')
 const bcrypt = require('bcryptjs')
+
 /*
   Kullanıcının sunucuda kayıtlı bir oturumu yoksa
 
@@ -10,7 +11,7 @@ const bcrypt = require('bcryptjs')
 */
 function sinirli(req, res, next) {
   try {
-    if (req.session && req.session.user_id > 0) {
+    if (req.session.user_id > 0) {
       next()
     } else {
       res.status(401).json({ message: 'Geçemezsiniz!' })
@@ -30,10 +31,10 @@ function sinirli(req, res, next) {
 */
 async function usernameBostami(req, res, next) {
   try {
-    const isUsernameExist = await UsersModel.goreBul({
+    const isUserExists = await UsersModel.goreBul({
       username: req.body.username,
     })
-    if (isUsernameExist.length > 0) {
+    if (isUserExists.length > 0) {
       res.status(422).json({ message: 'Username kullaniliyor' })
     } else {
       next()
@@ -53,17 +54,15 @@ async function usernameBostami(req, res, next) {
 */
 async function usernameVarmi(req, res, next) {
   try {
-    const { username, password } = req.body
-    const isUsernameExist = await UsersModel.goreBul({
-      username: username,
-    })
+    let { username, password } = req.body
+    const isUserExists = await UsersModel.goreBul({ username: username })
     let isLoginValid =
-      isUsernameExist.length > 0 &&
-      bcrypt.compareSync(password, [isUsernameExist].password)
+      isUserExists.length > 0 &&
+      bcrypt.compareSync(password, isUserExists[0].password)
     if (!isLoginValid) {
       res.status(422).json({ message: 'Geçersiz kriter' })
     } else {
-      req.currentUser = [isUsernameExist]
+      req.currentUser = isUserExists[0]
       next()
     }
   } catch (error) {
@@ -83,7 +82,9 @@ function sifreGecerlimi(req, res, next) {
   try {
     const isPasswordValid = req.body.password && req.body.password.length > 3
     if (!isPasswordValid) {
-      res.status(422).json({ message: 'Şifre 3 karakterden fazla olmalı' })
+      res.status(422).json({
+        message: 'Şifre 3 karakterden fazla olmalı',
+      })
     } else {
       next()
     }
@@ -93,10 +94,9 @@ function sifreGecerlimi(req, res, next) {
 }
 
 // Diğer modüllerde kullanılabilmesi için fonksiyonları "exports" nesnesine eklemeyi unutmayın.
-
 module.exports = {
-  usernameBostami,
-  usernameVarmi,
-  sifreGecerlimi,
   sinirli,
+  usernameBostami,
+  sifreGecerlimi,
+  usernameVarmi,
 }

@@ -1,10 +1,13 @@
 const express = require('express')
 const helmet = require('helmet')
 const cors = require('cors')
+const server = express()
+const session = require('express-session')
+const sessionStore = require('connect-session-knex')(session)
+
 const authRouter = require('./auth/auth-router')
 const usersRouter = require('./users/users-router')
-const session = require('express-session')
-const sessionStore = require('connect-session-knex')
+
 /**
   Kullanıcı oturumlarını desteklemek için `express-session` paketini kullanın!
   Kullanıcıların gizliliğini ihlal etmemek için, kullanıcılar giriş yapana kadar onlara cookie göndermeyin. 
@@ -18,8 +21,6 @@ const sessionStore = require('connect-session-knex')
   veya "connect-session-knex" gibi bir oturum deposu kullanabilirsiniz.
  */
 
-const server = express()
-
 server.use(helmet())
 server.use(express.json())
 server.use(cors())
@@ -27,9 +28,6 @@ server.use(cors())
 server.get('/', (req, res) => {
   res.json({ api: 'up' })
 })
-
-server.use('/api/auth', authRouter)
-server.use('/api/users', usersRouter)
 
 server.use(
   session({
@@ -43,13 +41,16 @@ server.use(
       knex: require('../data/db-config'),
       tableName: 'sessions',
       sidFieldName: 'sid',
-      createTable: true,
+      createtable: true,
       clearInterval: 1000 * 60 * 60,
     }),
     resave: false,
     saveUninitialized: false,
   })
 )
+
+server.use('/api/users', usersRouter)
+server.use('/api/auth', authRouter)
 
 server.use((err, req, res, next) => {
   // eslint-disable-line

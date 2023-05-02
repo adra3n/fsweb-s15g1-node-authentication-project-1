@@ -3,8 +3,8 @@ const db = require('../../data/db-config')
   tüm kullanıcıları içeren bir DİZİ ye çözümlenir, tüm kullanıcılar { user_id, username } içerir
  */
 async function bul() {
-  const allUsers = await db('users')
-  const mappedUsers = allUsers.map((user) => {
+  const users = await db('users')
+  const mappedUsers = users.map((user) => {
     delete user.password
     return { ...user }
   })
@@ -15,7 +15,7 @@ async function bul() {
   verilen filtreye sahip tüm kullanıcıları içeren bir DİZİ ye çözümlenir
  */
 async function goreBul(filtre) {
-  const filteredUsers = await db('users').where(filtre)
+  const filteredUsers = db('users').where(filtre)
   return filteredUsers
 }
 
@@ -24,14 +24,14 @@ async function goreBul(filtre) {
  */
 async function idyeGoreBul(user_id) {
   const user = await db('users').where('user_id', user_id).first()
+  delete user.password
   return user
 }
-
 /**
   yeni eklenen kullanıcıya çözümlenir { user_id, username }
  */
 async function ekle(user) {
-  const [user_id] = await db('users').insert('user')
+  const [user_id] = await db('users').insert(user)
   return await idyeGoreBul(user_id)
 }
 

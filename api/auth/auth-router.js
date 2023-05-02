@@ -62,7 +62,7 @@ router.post(
   }
  */
 
-router.post('/login', middleware.usernameVarmi, async (req, res, next) => {
+router.post('/login', middleware.usernameVarmi, (req, res, next) => {
   try {
     req.session.user_id = req.currentUser.user_id
     res.status(200).json({ message: `Hoşgeldin ${req.currentUser.username}!` })
