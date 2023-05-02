@@ -34,7 +34,7 @@ async function usernameBostami(req, res, next) {
     const isUserExists = await UsersModel.goreBul({
       username: req.body.username,
     })
-    if (isUserExists.length > 0) {
+    if (isUserExists && isUserExists.length > 0) {
       res.status(422).json({ message: 'Username kullaniliyor' })
     } else {
       next()
@@ -95,8 +95,8 @@ function sifreGecerlimi(req, res, next) {
 
 // Diğer modüllerde kullanılabilmesi için fonksiyonları "exports" nesnesine eklemeyi unutmayın.
 module.exports = {
+  sifreGecerlimi,
   sinirli,
   usernameBostami,
-  sifreGecerlimi,
   usernameVarmi,
 }
