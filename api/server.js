@@ -1,7 +1,10 @@
-const express = require("express");
-const helmet = require("helmet");
-const cors = require("cors");
-
+const express = require('express')
+const helmet = require('helmet')
+const cors = require('cors')
+const authRouter = require('./auth/auth-router')
+const usersRouter = require('./users/users-router')
+const session = require('express-session')
+const sessionStore = require('connect-session-knex')
 /**
   Kullanıcı oturumlarını desteklemek için `express-session` paketini kullanın!
   Kullanıcıların gizliliğini ihlal etmemek için, kullanıcılar giriş yapana kadar onlara cookie göndermeyin. 
@@ -15,21 +18,45 @@ const cors = require("cors");
   veya "connect-session-knex" gibi bir oturum deposu kullanabilirsiniz.
  */
 
-const server = express();
+const server = express()
 
-server.use(helmet());
-server.use(express.json());
-server.use(cors());
+server.use(helmet())
+server.use(express.json())
+server.use(cors())
 
-server.get("/", (req, res) => {
-  res.json({ api: "up" });
-});
+server.get('/', (req, res) => {
+  res.json({ api: 'up' })
+})
 
-server.use((err, req, res, next) => { // eslint-disable-line
+server.use('/api/auth', authRouter)
+server.use('/api/users', usersRouter)
+
+server.use(
+  session({
+    name: 'cikolatacips',
+    secret: 'secret_cikolatacips',
+    cookie: {
+      maxAge: 1000 * 60 * 60,
+      secure: false,
+    },
+    store: new sessionStore({
+      knex: require('../data/db-config'),
+      tableName: 'sessions',
+      sidFieldName: 'sid',
+      createTable: true,
+      clearInterval: 1000 * 60 * 60,
+    }),
+    resave: false,
+    saveUninitialized: false,
+  })
+)
+
+server.use((err, req, res, next) => {
+  // eslint-disable-line
   res.status(err.status || 500).json({
     message: err.message,
     stack: err.stack,
-  });
-});
+  })
+})
 
-module.exports = server;
+module.exports = server
